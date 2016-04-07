@@ -15,19 +15,14 @@ import java.util.Random;
 import javax.swing.*;
 
 public class main {
-	static Queue<KeyEvent> queue = new LinkedList<KeyEvent>();
-	static Timer timer;
 	static Random random;
+	Calendar calendar;
 	
-	static int mean = 800;
-	static int std = 200;
+	static int delay;
+	static int delay_std = 200;
+	static int delay_mean = 800;
 	
-	static int count = 0;
-	static int countLimit;
-	
-	static int randomTime = 0;
-	
-	static Calendar calendar;
+	static int phase_length = 500;
 	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
@@ -45,58 +40,33 @@ public class main {
 		
 		random = new Random();
 		
-		countLimit = 5;
-		
-		ActionListener listener = new ActionListener() {
+		ActionListener delayListener = new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
-				KeyEvent event = queue.poll();
-				myPanel.changeDirection(event);
-				count++;
-				
-				if(count == countLimit) {
-					do {
-						randomTime = (int) Math.round(random.nextGaussian() * std + mean);
-					} while(randomTime < 0);
-					timer.stop();
-					timer.setInitialDelay(randomTime);
-					timer.setDelay(5);
-					timer.restart();
-					count = 0;
-					do {
-						countLimit = (int) Math.round(random.nextGaussian() * 2 + 5);
-					} while(countLimit < 1);
-					
-					calendar = Calendar.getInstance();
-					Timestamp ts = new Timestamp(calendar.getTime().getTime());
-					System.out.print(ts.getTime() + " ");
-					System.out.println("Tick: " + randomTime + ", countLimit: " + countLimit);
-				}
+				do {
+					delay = (int) Math.round(random.nextGaussian() * delay_std + delay_mean);
+				} while(delay < 0);
 			}
 		};
-		timer = new Timer(0, listener);
-		timer.start();
+		Timer delayTimer = new Timer(phase_length, delayListener);
+		delayTimer.start();
 		
-		
-		ActionListener keyListener = new ActionListener() {
+		ActionListener updateListener = new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
 				myPanel.moveSquare();
 			}	
 		};
-		Timer keyTimer = new Timer(1, keyListener);
-		keyTimer.start();
+		Timer updateTimer = new Timer(1, updateListener);
+		updateTimer.start();
 	}
 
 	static class MyPanel extends JPanel {
 		private static final long serialVersionUID = 1L;
 		private int squareX = 50;
 		private int squareY = 50;
-		private int square2X = 1130;
-		private int square2Y = 730;
-		
 		private int squareH = 20;
 		private int squareW = 20;
 		
@@ -105,8 +75,6 @@ public class main {
 		
 		private int x = 0;
 		private int y = 0;
-		private int x2 = 0;
-		private int y2 = 0;
 		
 		public MyPanel() {
 			setBorder(BorderFactory.createLineBorder(Color.black));
@@ -120,66 +88,149 @@ public class main {
 				@Override
 				public void keyPressed(KeyEvent e) {
 					// TODO Auto-generated method stub
-					queue.add(e);
+					System.out.println("Current delay = " + delay);
+					switch(e.getKeyCode()) {
+					case KeyEvent.VK_W: // W
+						ActionListener upPressListener = new ActionListener() {
+							@Override
+							public void actionPerformed(ActionEvent e) {
+								// TODO Auto-generated method stub
+								changeDirection(0, 0);
+							}	
+						};
+						Timer upPressTimer = new Timer(delay, upPressListener);
+						upPressTimer.setRepeats(false);
+						upPressTimer.start();
+						break;
+					case KeyEvent.VK_S: // S
+						ActionListener downPressListener = new ActionListener() {
+							@Override
+							public void actionPerformed(ActionEvent e) {
+								// TODO Auto-generated method stub
+								changeDirection(1, 0);
+							}	
+						};
+						Timer downPressTimer = new Timer(delay, downPressListener);
+						downPressTimer.setRepeats(false);
+						downPressTimer.start();
+						break;
+					case KeyEvent.VK_A: // A
+						ActionListener leftPressListener = new ActionListener() {
+							@Override
+							public void actionPerformed(ActionEvent e) {
+								// TODO Auto-generated method stub
+								changeDirection(2, 0);
+							}	
+						};
+						Timer leftPressTimer = new Timer(delay, leftPressListener);
+						leftPressTimer.setRepeats(false);
+						leftPressTimer.start();
+						break;
+					case KeyEvent.VK_D: // D
+						ActionListener rightPressListener = new ActionListener() {
+							@Override
+							public void actionPerformed(ActionEvent e) {
+								// TODO Auto-generated method stub
+								changeDirection(3, 0);
+							}	
+						};
+						Timer rightPressTimer = new Timer(delay, rightPressListener);
+						rightPressTimer.setRepeats(false);
+						rightPressTimer.start();
+						break;
+					}
 				}
 	
 				@Override
 				public void keyReleased(KeyEvent e) {
 					// TODO Auto-generated method stub
-					queue.add(e);
+					switch(e.getKeyCode()) {
+					case KeyEvent.VK_W: // W
+						ActionListener upReleaseListener = new ActionListener() {
+							@Override
+							public void actionPerformed(ActionEvent e) {
+								// TODO Auto-generated method stub
+								changeDirection(0, 1);
+							}	
+						};
+						Timer upReleaseTimer = new Timer(delay, upReleaseListener);
+						upReleaseTimer.setRepeats(false);
+						upReleaseTimer.start();
+						break;
+					case KeyEvent.VK_S: // S
+						ActionListener downReleaseListener = new ActionListener() {
+							@Override
+							public void actionPerformed(ActionEvent e) {
+								// TODO Auto-generated method stub
+								changeDirection(1, 1);
+							}	
+						};
+						Timer downReleaseTimer = new Timer(delay, downReleaseListener);
+						downReleaseTimer.setRepeats(false);
+						downReleaseTimer.start();
+						break;
+					case KeyEvent.VK_A: // A
+						ActionListener leftReleaseListener = new ActionListener() {
+							@Override
+							public void actionPerformed(ActionEvent e) {
+								// TODO Auto-generated method stub
+								changeDirection(2, 1);
+							}	
+						};
+						Timer leftReleaseTimer = new Timer(delay, leftReleaseListener);
+						leftReleaseTimer.setRepeats(false);
+						leftReleaseTimer.start();
+						break;
+					case KeyEvent.VK_D: // D
+						ActionListener rightReleaseListener = new ActionListener() {
+							@Override
+							public void actionPerformed(ActionEvent e) {
+								// TODO Auto-generated method stub
+								changeDirection(3, 1);
+							}	
+						};
+						Timer rightReleaseTimer = new Timer(delay, rightReleaseListener);
+						rightReleaseTimer.setRepeats(false);
+						rightReleaseTimer.start();
+						break;
+					}
 				}
 			});
 		}
 		
-		public void changeDirection(KeyEvent event) {
-			if(event != null && event.getID() == KeyEvent.KEY_RELEASED) {
-				switch(event.getKeyCode()) {
-				case KeyEvent.VK_UP: // Up
-				case KeyEvent.VK_DOWN: // Down
-					y2 = 0;
+		// direction: U - 0, D - 1, L - 2, R - 3
+		// mode: Pressed - 0, Released - 1
+		public void changeDirection(int direction, int mode) {
+			if(mode == 0) {
+				switch(direction) {
+				case 0:
+					y = -1;
 					break;
-				case KeyEvent.VK_W: // W
-				case KeyEvent.VK_S: // S
+				case 1:
+					y = 1;
+					break;
+				case 2:
+					x = -1;
+					break;
+				case 3:
+					x = 1;
+					break;
+				}
+			}
+			else if(mode == 1) {
+				switch(direction) {
+				case 0:
+				case 1:
 					y = 0;
 					break;
-				case KeyEvent.VK_LEFT: // Left
-				case KeyEvent.VK_RIGHT: // Right
-					x2 = 0;
-					break;
-				case KeyEvent.VK_A: // A
-				case KeyEvent.VK_D: // D
+				case 2:
+				case 3:
 					x = 0;
 					break;
 				}
 			}
-				
-			if(event != null && event.getID() == KeyEvent.KEY_PRESSED) {
-				switch(event.getKeyCode()) {
-				case KeyEvent.VK_UP: // Up
-					y2 = -1;
-					break;
-				case KeyEvent.VK_W: // W
-					y = -1;
-					break;
-				case KeyEvent.VK_DOWN: // Down
-					y2 = 1;
-					break;
-				case KeyEvent.VK_S: // S
-					y = 1;
-					break;
-				case KeyEvent.VK_LEFT: // Left
-					x2 = -1;
-					break;
-				case KeyEvent.VK_A: // A
-					x = -1;
-					break;
-				case KeyEvent.VK_RIGHT: // Right
-					x2 = 1;
-					break;
-				case KeyEvent.VK_D: // D
-					x = 1;
-					break;
-				}
+			else {
+				System.out.println("Error mode!");
 			}
 		}
 		
@@ -203,23 +254,6 @@ public class main {
 			}
 			
 			repaint(squareX, squareY, squareW + OFFSET, squareH + OFFSET);
-			
-			repaint(square2X, square2Y, squareW + OFFSET, squareH + OFFSET);
-			
-			if(x2 == 1 && square2X + squareW + step < width) {
-				square2X += step;
-			}
-			else if(x2 == -1 && square2X - step > 0) {
-				square2X -= step;
-			}
-			if(y2 == 1 && square2Y + squareH + step < height) {
-				square2Y += step;
-			}
-			else if(y2 == -1 && square2Y - step > 0) {
-				square2Y -= step;
-			}
-			
-			repaint(square2X, square2Y, squareW + OFFSET, squareH + OFFSET);
 		}
 		
 		public Dimension getPreferredSize() {
@@ -232,11 +266,6 @@ public class main {
 			g.fillRect(squareX, squareY, squareW, squareH);
 			g.setColor(Color.BLACK);
 			g.drawRect(squareX, squareY, squareW, squareH);
-			
-			g.setColor(Color.BLUE);
-			g.fillRect(square2X, square2Y, squareW, squareH);
-			g.setColor(Color.BLACK);
-			g.drawRect(square2X, square2Y, squareW, squareH);
 			
 			g.drawRect(width / 2, height / 2, squareW + 10, squareH + 10);
 		}

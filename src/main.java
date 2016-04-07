@@ -16,7 +16,7 @@ import javax.swing.*;
 
 public class main {
 	static Random random;
-	Calendar calendar;
+	static Calendar calendar;
 	
 	static int delay;
 	static int delay_std = 200;
@@ -39,6 +39,9 @@ public class main {
 		demo.setVisible(true);
 		
 		random = new Random();
+		delay = delay_mean;
+		
+		System.out.println("Experiment with delay_mean = " + delay_mean + " and delay_std = " + delay_std);
 		
 		ActionListener delayListener = new ActionListener() {
 			@Override
@@ -76,6 +79,8 @@ public class main {
 		private int x = 0;
 		private int y = 0;
 		
+		private int uDelay, dDelay, lDelay, rDelay;
+		
 		public MyPanel() {
 			setBorder(BorderFactory.createLineBorder(Color.black));
 			
@@ -88,9 +93,13 @@ public class main {
 				@Override
 				public void keyPressed(KeyEvent e) {
 					// TODO Auto-generated method stub
-					System.out.println("Current delay = " + delay);
+					calendar = Calendar.getInstance();
+					System.out.print(calendar.getTimeInMillis() + ": Press " + e.getKeyText(e.getKeyCode()));
+					System.out.print(" object at (" + squareX + ", " + squareY + ")");					
 					switch(e.getKeyCode()) {
 					case KeyEvent.VK_W: // W
+						uDelay = delay;
+						System.out.println(" with delay " + uDelay + " ms");
 						ActionListener upPressListener = new ActionListener() {
 							@Override
 							public void actionPerformed(ActionEvent e) {
@@ -98,11 +107,13 @@ public class main {
 								changeDirection(0, 0);
 							}	
 						};
-						Timer upPressTimer = new Timer(delay, upPressListener);
+						Timer upPressTimer = new Timer(uDelay, upPressListener);
 						upPressTimer.setRepeats(false);
 						upPressTimer.start();
 						break;
 					case KeyEvent.VK_S: // S
+						dDelay = delay;
+						System.out.println(" with delay " + dDelay + " ms");
 						ActionListener downPressListener = new ActionListener() {
 							@Override
 							public void actionPerformed(ActionEvent e) {
@@ -110,11 +121,13 @@ public class main {
 								changeDirection(1, 0);
 							}	
 						};
-						Timer downPressTimer = new Timer(delay, downPressListener);
+						Timer downPressTimer = new Timer(dDelay, downPressListener);
 						downPressTimer.setRepeats(false);
 						downPressTimer.start();
 						break;
 					case KeyEvent.VK_A: // A
+						lDelay = delay;
+						System.out.println(" with delay " + lDelay + " ms");
 						ActionListener leftPressListener = new ActionListener() {
 							@Override
 							public void actionPerformed(ActionEvent e) {
@@ -122,11 +135,13 @@ public class main {
 								changeDirection(2, 0);
 							}	
 						};
-						Timer leftPressTimer = new Timer(delay, leftPressListener);
+						Timer leftPressTimer = new Timer(lDelay, leftPressListener);
 						leftPressTimer.setRepeats(false);
 						leftPressTimer.start();
 						break;
 					case KeyEvent.VK_D: // D
+						rDelay = delay;
+						System.out.println(" with delay " + rDelay + " ms");
 						ActionListener rightPressListener = new ActionListener() {
 							@Override
 							public void actionPerformed(ActionEvent e) {
@@ -134,7 +149,7 @@ public class main {
 								changeDirection(3, 0);
 							}	
 						};
-						Timer rightPressTimer = new Timer(delay, rightPressListener);
+						Timer rightPressTimer = new Timer(rDelay, rightPressListener);
 						rightPressTimer.setRepeats(false);
 						rightPressTimer.start();
 						break;
@@ -144,52 +159,67 @@ public class main {
 				@Override
 				public void keyReleased(KeyEvent e) {
 					// TODO Auto-generated method stub
+					calendar = Calendar.getInstance();
+					System.out.print(calendar.getTimeInMillis() + ": Release " + e.getKeyText(e.getKeyCode()));
+					System.out.print(" object at (" + squareX + ", " + squareY + ")");
 					switch(e.getKeyCode()) {
 					case KeyEvent.VK_W: // W
+						System.out.println(" with delay " + uDelay + " ms");
 						ActionListener upReleaseListener = new ActionListener() {
 							@Override
 							public void actionPerformed(ActionEvent e) {
 								// TODO Auto-generated method stub
 								changeDirection(0, 1);
+								calendar = Calendar.getInstance();
+								System.out.println(calendar.getTimeInMillis() + ": Move object up to (" + squareX + ", " + squareY + ")");
 							}	
 						};
-						Timer upReleaseTimer = new Timer(delay, upReleaseListener);
+						Timer upReleaseTimer = new Timer(uDelay, upReleaseListener);
 						upReleaseTimer.setRepeats(false);
 						upReleaseTimer.start();
 						break;
 					case KeyEvent.VK_S: // S
+						System.out.println(" with delay " + dDelay + " ms");
 						ActionListener downReleaseListener = new ActionListener() {
 							@Override
 							public void actionPerformed(ActionEvent e) {
 								// TODO Auto-generated method stub
 								changeDirection(1, 1);
+								calendar = Calendar.getInstance();
+								System.out.println(calendar.getTimeInMillis() + ": Move object down to (" + squareX + ", " + squareY + ")");
 							}	
 						};
-						Timer downReleaseTimer = new Timer(delay, downReleaseListener);
+						Timer downReleaseTimer = new Timer(dDelay, downReleaseListener);
 						downReleaseTimer.setRepeats(false);
 						downReleaseTimer.start();
 						break;
 					case KeyEvent.VK_A: // A
+						System.out.println(" with delay " + lDelay + " ms");
 						ActionListener leftReleaseListener = new ActionListener() {
 							@Override
 							public void actionPerformed(ActionEvent e) {
 								// TODO Auto-generated method stub
 								changeDirection(2, 1);
+								calendar = Calendar.getInstance();
+								System.out.println(calendar.getTimeInMillis() + ": Move object left to (" + squareX + ", " + squareY + ")");
 							}	
 						};
-						Timer leftReleaseTimer = new Timer(delay, leftReleaseListener);
+						Timer leftReleaseTimer = new Timer(lDelay, leftReleaseListener);
 						leftReleaseTimer.setRepeats(false);
 						leftReleaseTimer.start();
 						break;
 					case KeyEvent.VK_D: // D
+						System.out.println(" with delay " + rDelay + " ms");
 						ActionListener rightReleaseListener = new ActionListener() {
 							@Override
 							public void actionPerformed(ActionEvent e) {
 								// TODO Auto-generated method stub
 								changeDirection(3, 1);
+								calendar = Calendar.getInstance();
+								System.out.println(calendar.getTimeInMillis() + ": Move object right to (" + squareX + ", " + squareY + ")");
 							}	
 						};
-						Timer rightReleaseTimer = new Timer(delay, rightReleaseListener);
+						Timer rightReleaseTimer = new Timer(rDelay, rightReleaseListener);
 						rightReleaseTimer.setRepeats(false);
 						rightReleaseTimer.start();
 						break;

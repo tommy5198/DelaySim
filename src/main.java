@@ -5,12 +5,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.sql.Timestamp;
-import java.sql.Date;
 import java.util.Calendar;
-import java.util.LinkedList;
-import java.util.Queue;
 import java.util.Random;
+import java.util.TimerTask;
 
 import javax.swing.*;
 
@@ -19,14 +16,19 @@ public class main {
 	static Calendar calendar;
 	
 	static int delay;
-	static int delay_std = 200;
-	static int delay_mean = 800;
+	static int delay_std = 130;
+	static int delay_mean = 160;
 	
 	static int phase_length = 500;
 	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		JFrame demo = new JFrame();
+		
+		if(args.length == 2) {
+			delay_mean = Integer.parseInt(args[0]);
+			delay_std = Integer.parseInt(args[1]);
+		}
 		
 		demo.setSize(400, 300);
 		demo.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -42,7 +44,7 @@ public class main {
 		delay = delay_mean;
 		
 		System.out.println("Experiment with delay_mean = " + delay_mean + " and delay_std = " + delay_std);
-		
+
 		ActionListener delayListener = new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -55,21 +57,22 @@ public class main {
 		Timer delayTimer = new Timer(phase_length, delayListener);
 		delayTimer.start();
 		
-		ActionListener updateListener = new ActionListener() {
+		TimerTask updateTask = new TimerTask() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
+			public void run() {
 				// TODO Auto-generated method stub
+				//System.out.println(Calendar.getInstance().getTimeInMillis());
 				myPanel.moveSquare();
-			}	
+			}
 		};
-		Timer updateTimer = new Timer(1, updateListener);
-		updateTimer.start();
+		java.util.Timer timer = new java.util.Timer();
+		timer.scheduleAtFixedRate(updateTask, 0, 5);
 	}
 
 	static class MyPanel extends JPanel {
 		private static final long serialVersionUID = 1L;
 		private int squareX = 50;
-		private int squareY = 50;
+		private int squareY = 405;
 		private int squareH = 20;
 		private int squareW = 20;
 		
@@ -80,6 +83,7 @@ public class main {
 		private int y = 0;
 		
 		private int uDelay, dDelay, lDelay, rDelay;
+		private int lId = 0, rId = 0;
 		
 		public MyPanel() {
 			setBorder(BorderFactory.createLineBorder(Color.black));
@@ -95,8 +99,9 @@ public class main {
 					// TODO Auto-generated method stub
 					calendar = Calendar.getInstance();
 					System.out.print(calendar.getTimeInMillis() + ": Press " + e.getKeyText(e.getKeyCode()));
-					System.out.print(" object at (" + squareX + ", " + squareY + ")");					
+					System.out.print(" when object at (" + squareX + ", " + squareY + ")");					
 					switch(e.getKeyCode()) {
+					/*
 					case KeyEvent.VK_W: // W
 						uDelay = delay;
 						System.out.println(" with delay " + uDelay + " ms");
@@ -125,9 +130,11 @@ public class main {
 						downPressTimer.setRepeats(false);
 						downPressTimer.start();
 						break;
+					*/
+					case KeyEvent.VK_LEFT: // Left Arrow
 					case KeyEvent.VK_A: // A
 						lDelay = delay;
-						System.out.println(" with delay " + lDelay + " ms");
+						System.out.println(" with delay " + lDelay + " ms" + ", id = " + lId);
 						ActionListener leftPressListener = new ActionListener() {
 							@Override
 							public void actionPerformed(ActionEvent e) {
@@ -139,9 +146,10 @@ public class main {
 						leftPressTimer.setRepeats(false);
 						leftPressTimer.start();
 						break;
+					case KeyEvent.VK_RIGHT: // Right Arrow
 					case KeyEvent.VK_D: // D
 						rDelay = delay;
-						System.out.println(" with delay " + rDelay + " ms");
+						System.out.println(" with delay " + rDelay + " ms" + ", id = " + rId);
 						ActionListener rightPressListener = new ActionListener() {
 							@Override
 							public void actionPerformed(ActionEvent e) {
@@ -161,8 +169,9 @@ public class main {
 					// TODO Auto-generated method stub
 					calendar = Calendar.getInstance();
 					System.out.print(calendar.getTimeInMillis() + ": Release " + e.getKeyText(e.getKeyCode()));
-					System.out.print(" object at (" + squareX + ", " + squareY + ")");
+					System.out.print(" when object at (" + squareX + ", " + squareY + ")");
 					switch(e.getKeyCode()) {
+					/*
 					case KeyEvent.VK_W: // W
 						System.out.println(" with delay " + uDelay + " ms");
 						ActionListener upReleaseListener = new ActionListener() {
@@ -193,8 +202,10 @@ public class main {
 						downReleaseTimer.setRepeats(false);
 						downReleaseTimer.start();
 						break;
+					*/
+					case KeyEvent.VK_LEFT: // Left Arrow
 					case KeyEvent.VK_A: // A
-						System.out.println(" with delay " + lDelay + " ms");
+						System.out.println(" with delay " + lDelay + " ms" + ", id = " + lId++);
 						ActionListener leftReleaseListener = new ActionListener() {
 							@Override
 							public void actionPerformed(ActionEvent e) {
@@ -208,8 +219,9 @@ public class main {
 						leftReleaseTimer.setRepeats(false);
 						leftReleaseTimer.start();
 						break;
+					case KeyEvent.VK_RIGHT: // Right Arrow
 					case KeyEvent.VK_D: // D
-						System.out.println(" with delay " + rDelay + " ms");
+						System.out.println(" with delay " + rDelay + " ms" + ", id = " + rId++);
 						ActionListener rightReleaseListener = new ActionListener() {
 							@Override
 							public void actionPerformed(ActionEvent e) {

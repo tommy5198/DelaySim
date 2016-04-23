@@ -1,38 +1,57 @@
+#include <algorithm>
 #include <cstdio>
 #include <cstring>
 
-#define MAX_SEQUENCE 1024
+#include "analyze.h"
 
-#define HEIGHT		600
-#define WIDTH		1200
+using namespace std;
 
-#define SQUARE_W	20
-#define SQUARE_H	20
+int main(int argc, char *argv[])
+{
+	vector<T_ACTION> actions;
+	vector<T_ACTION> right_actions;
+	vector<T_ACTION> left_actions;
+	vector<T_LOCATION> locations;
 
-#define RIGHT_BOUNDRY	(WIDTH / 2 + SQUARE_W + 10 - SQUARE_W)
-#define LEFT_BOUNDRY	(WIDTH / 2)
+	if(argc != 4) {
+		printf("usage: ./analyze input_file action_file location_file\n");
 
-typedef struct {
-	long long int press_time;
-	long long int release_time;
-	int press_x;
-	int release_x;
-	int press_y;
-	int release_y;
-	int delay;
-} ENTRY;
+		return 1;
+	}
 
-int main()
+	// Preserve the space for actions
+	right_actions.reserve(MAX_ACTION_NUMBER);
+	left_actions.reserve(MAX_ACTION_NUMBER);
+
+	FILE *file;
+	file = fopen(argv[1], "r");
+	parse(file, right_actions, left_actions);
+	fclose(file);
+
+	merge_actions(actions, right_actions, left_actions);
+	sort(actions.begin(), actions.end(), action_comparator);
+
+	file = fopen(argv[2], "w");;
+	parse_action(file, actions, locations);
+	fclose(file);
+
+	file = fopen(argv[3], "w");
+	generate_location(file, locations);
+	fclose(file);
+
+	return 0;
+}
+
+void parse(FILE *input_file, vector<T_ACTION> &right_actions,
+           vector<T_ACTION> &left_actions)
 {
 	char input[1024];
-	ENTRY right_seq[MAX_SEQUENCE];
-	ENTRY left_seq[MAX_SEQUENCE];
-	int lid_count = 0, rid_count = 0;
+	long long int start_time;
+	bool first_flag = false; // used for catching start time
 
-	fgets(input, 1024, stdin);
-	printf("%s", input);
+	fgets(input, 1024, input_file); // Discard the first line
 
-	while(fgets(input, 1024, stdin) != NULL) {
+	while(fgets(input, 1024, input_file) != NULL) {
 		long long int time;
 		char type[16];
 		char action;
@@ -50,79 +69,145 @@ int main()
 			       , &time, type, &action, &x, &y, &delay, &id);
 		}
 
+		if(!first_flag) {
+			start_time = time;
+			first_flag = true;
+		}
+
 		if(!strcmp(type, "Press")) {
 			if(action == 'D') {
-				right_seq[id].press_time = time;
-				right_seq[id].press_x = x;
-				right_seq[id].press_y = y;
-				right_seq[id].delay = delay;
-				rid_count++;
+				if(right_actions.size() <= id) {
+					right_actions.resize(id + 1);
+				}
+
+				right_actions[id].action = T_ACTION::kRight;
+				right_actions[id].press_time = time - start_time;
+				right_actions[id].press_x = x;
+				right_actions[id].press_y = y;
+				right_actions[id].delay = delay;
 			}
 			else {
-				left_seq[id].press_time = time;
-				left_seq[id].press_x = x;
-				left_seq[id].press_y = y;
-				left_seq[id].delay = delay;
-				lid_count++;
+				if(left_actions.size() <= id) {
+					left_actions.resize(id + 1);
+				}
+
+				left_actions[id].action = T_ACTION::kLeft;
+				left_actions[id].press_time = time - start_time;
+				left_actions[id].press_x = x;
+				left_actions[id].press_y = y;
+				left_actions[id].delay = delay;
 			}
 		}
 		else {
 			if(action == 'D') {
-				right_seq[id].release_time = time;
-				right_seq[id].release_x = x;
-				right_seq[id].release_y = y;
+				right_actions[id].release_time = time - start_time;
+				right_actions[id].release_x = x;
+				right_actions[id].release_y = y;
 			}
 			else {
-				left_seq[id].release_time = time;
-				left_seq[id].release_x = x;
-				left_seq[id].release_y = y;
+				left_actions[id].release_time = time - start_time;
+				left_actions[id].release_x = x;
+				left_actions[id].release_y = y;
 			}
 		}
 	}
+}
 
-	printf("Right Actions:\n");
-	for(int i = 0; i < rid_count; ++i) {
-		printf("%lld ~ %lld: from (%d, %d) to (%d, %d) with delay = %d\n",
-		       right_seq[i].press_time, right_seq[i].release_time,
-			   right_seq[i].press_x, right_seq[i].press_y,
-			   right_seq[i].release_x, right_seq[i].release_y,
-			   right_seq[i].delay);
+void merge_actions(vector<T_ACTION> &actions, vector<T_ACTION> right_actions,
+                   vector<T_ACTION> left_actions)
+{
+	for(int i = 0; i < right_actions.size(); ++i) {
+		actions.push_back(right_actions[i]);
+	}
+	for(int i = 0; i < left_actions.size(); ++i) {
+		actions.push_back(left_actions[i]);
+	}
+}
 
-		int elapsed = right_seq[i].release_time - right_seq[i].press_time;
+void parse_action(FILE *file, vector<T_ACTION> actions,
+                  vector<T_LOCATION> &locations)
+{
+	if(actions.size() == 0) {
+		return;
+	}
+
+	fprintf(file, "# x y\n");
+	for(int i = 0; i < actions.size(); ++i) {
+		T_LOCATION press_loc, release_loc;
+		int press_time = actions[i].press_time;
+		int release_time = actions[i].release_time;
+		int delay = actions[i].delay;
+
+		press_loc.time = press_time + delay;
+		release_loc.time = release_time + delay;
+		if(actions[i].action == T_ACTION::kRight) {
+			fprintf(file, "%d 0\n%d 1\n%d 1\n%d 0\n",
+			        press_time, press_time, release_time, release_time);
+			printf("%d ~ %d: Move right from (%d, %d) to (%d, %d) with delay = %d\n",
+				   actions[i].press_time, actions[i].release_time,
+				   actions[i].press_x, actions[i].press_y,
+				   actions[i].release_x, actions[i].release_y,
+				   actions[i].delay);
+
+			press_loc.action_type = T_LOCATION::kRightOn;
+			release_loc.action_type = T_LOCATION::kRightOff;
+		}
+		else if(actions[i].action == T_ACTION::kLeft) {
+			fprintf(file, "%d 0\n%d -1\n%d -1\n%d 0\n",
+			        press_time, press_time, release_time, release_time);
+			printf("%d ~ %d: Move left from (%d, %d) to (%d, %d) with delay = %d\n",
+				   actions[i].press_time, actions[i].release_time,
+				   actions[i].press_x, actions[i].press_y,
+				   actions[i].release_x, actions[i].release_y,
+				   actions[i].delay);
+
+			press_loc.action_type = T_LOCATION::kLeftOn;
+			release_loc.action_type = T_LOCATION::kLeftOff;
+		}
+		else {
+			printf("Incorrect action type\n");
+		}
+
+		locations.push_back(press_loc);
+		locations.push_back(release_loc);
+
+		int elapsed = release_time - press_time;
 		int correct_packet;
 		
-		if(right_seq[i].press_x > RIGHT_BOUNDRY) {
+		if(actions[i].press_x > RIGHT_BOUNDRY) {
 			correct_packet = 0;
 		}
 		else {
-			correct_packet = (RIGHT_BOUNDRY - right_seq[i].press_x) * 5;
+			correct_packet = (RIGHT_BOUNDRY - actions[i].press_x) * 5;
 			correct_packet = correct_packet < elapsed ? correct_packet : elapsed;
 		}
 
 		printf("Correct = %d, Error = %d\n", correct_packet, elapsed - correct_packet);
 	}
+}
 
-	printf("Left Actions:\n");
-	for(int i = 0; i < lid_count; ++i) {
-		printf("%lld ~ %lld: from (%d, %d) to (%d, %d) with delay = %d\n",
-		       left_seq[i].press_time, left_seq[i].release_time,
-			   left_seq[i].press_x, left_seq[i].press_y,
-			   left_seq[i].release_x, left_seq[i].release_y,
-			   left_seq[i].delay);
+void generate_location(FILE *file, vector<T_LOCATION> locations)
+{
+	int loc_x = INIT_X;
 
-		int elapsed = left_seq[i].release_time - left_seq[i].press_time;
-		int correct_packet;
+	fprintf(file, "0 %d\n", loc_x);
 
-		if(left_seq[i].press_x < LEFT_BOUNDRY) {
-			correct_packet = 0;
+	sort(locations.begin(), locations.end(), loc_comparator);
+
+	for(int i = 0; i < locations.size() - 1; ++i) {
+		fprintf(file, "%d %d\n", locations[i].time, loc_x);
+		int elapsed = locations[i + 1].time - locations[i].time;
+		switch(locations[i].action_type) {
+			case T_LOCATION::kRightOn:
+				loc_x += elapsed / 5;
+				break;
+			case T_LOCATION::kLeftOn:
+				loc_x -= elapsed / 5;
+				break;
+			case T_LOCATION::kRightOff:
+			case T_LOCATION::kLeftOff:
+				break;
 		}
-		else {
-			correct_packet = (left_seq[i].press_x - LEFT_BOUNDRY) * 5;
-			correct_packet = correct_packet < elapsed ? correct_packet : elapsed;
-		}
-
-		printf("Correct = %d, Error = %d\n", correct_packet, elapsed - correct_packet);
+		fprintf(file, "%d %d\n", locations[i + 1].time, loc_x);	
 	}
-
-	return 0;
 }

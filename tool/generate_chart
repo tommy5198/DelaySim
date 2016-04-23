@@ -1,0 +1,15 @@
+#!/bin/bash
+
+if [ $# -ne 2 ]
+then
+	echo "Error: need 2 arguments"
+	echo "usage: ./action.sh experiment_data chart_file"
+	exit 1
+fi
+
+action_input="action.dat"
+loc_input="loc.dat"
+
+./analyze $1 $action_input $loc_input
+
+gnuplot -e "action_input='$action_input'; loc_input='$loc_input'; output_file='$2'" action.plt

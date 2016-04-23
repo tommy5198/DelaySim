@@ -2,3 +2,4 @@ bin/
 dat/
 *.dat
 *.png
+tool/analyze

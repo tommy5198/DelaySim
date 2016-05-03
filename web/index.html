@@ -1,0 +1,40 @@
+<HTML>
+<HEAD>
+<title>DelaySim 1.0</title>
+<style>
+.box {
+	position: relative;
+	width: 400px;
+	height: 200px;
+	border: 1px solid black;
+}
+
+#user {
+	position: absolute;
+	//left: 40px;
+	top: 100px;
+	width: 20px;
+	height: 20px;
+	background-color: red;
+}
+
+.goal {
+	position: absolute;
+	left: 300px;
+	top: 100px;
+	width: 21px;
+	height: 21px;
+	border: 1px solid blue;
+}
+</style>
+</HEAD>
+<BODY>
+	<p id='info'></p>
+	<div class='gameBox' id='box'>
+		<div class='user' id='user' left='20px'></div>
+		<div class='goal'></div>
+	</div>
+	<p id='log'></p>
+<script type="text/javascript" src="DelaySim.js"></script>
+</BODY>
+</HTML>
